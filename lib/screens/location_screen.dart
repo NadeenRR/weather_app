@@ -1,155 +1,108 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:google_fonts/google_fonts.dart';
+import 'package:weather_app/services/weather.dart';
+import '../model/all_weather_model.dart';
+import '../services/featch_data.dart';
+import '../services/networking.dart';
+import '../utilities/colors.dart';
 import '../utilities/constants.dart';
+import '../widgets/my_outline_btn.dart';
+import '../widgets/my_weather_widget.dart';
+import '../widgets/search_field_widget.dart';
+import 'city_search.dart';
 
 class LocationScreen extends StatefulWidget {
-  const LocationScreen({super.key});
+  const LocationScreen({super.key, required this.weatherData});
+
+  final AllWeatherModel weatherData;
 
   @override
   LocationScreenState createState() => LocationScreenState();
 }
 
 class LocationScreenState extends State<LocationScreen> {
+  TextEditingController controller = TextEditingController();
+
+  @override
+  void initState() {
+    print('bbbbbbbbbbb');
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                // image: AssetImage('images/location_background.jpg'),
-                image: const NetworkImage(
-                    'https://source.unsplash.com/random/?nature,day'),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                    Colors.white.withOpacity(0.8), BlendMode.dstATop),
-              ),
-            ),
-            constraints: const BoxConstraints.expand(),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    Colors.white.withOpacity(0.0),
-                    Colors.white.withOpacity(0.0)
-                  ], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-                  // color: Colors.white.withOpacity(0.0),
-                ),
-              ),
-            ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              SafeArea(
-                child: Row(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Column(
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed: () {},
-                      child: const Icon(
-                        Icons.near_me,
-                        size: 50.0,
-                        color: kSecondaryColor,
+                  children: [
+                    Text(
+                      'Weather',
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Icon(
-                        Icons.location_city,
-                        size: 50.0,
-                        color: kSecondaryColor,
-                      ),
+                    MYOutlineBtn(
+                      icon: Icons.location_on,
+                      iconColor: Colors.black,
+                      bColor: Colors.black.withOpacity(0.5),
+                      function: () {},
                     ),
                   ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const Icon(
-                      FontAwesomeIcons.cloudSun,
-                      size: 120,
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        const Text(
-                          '32',
-                          style: kTempTextStyle,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 35,
-                              height: 35,
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: Colors.white, width: 10),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Container(
-                              height: 7,
-                              width: 35,
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10)
-                                  // shape: BoxShape.circle,
-                                  ),
-                            ),
-                            const Text(
-                              'now',
-                              style: TextStyle(
-                                fontSize: 30.0,
-                                fontFamily: 'Spartan MB',
-                                letterSpacing: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                const SizedBox(
+                  height: 18,
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(right: 24.0),
-                child: Text(
-                  "It's 🥶 in gaza! Dress 🧤🧣",
-                  textAlign: TextAlign.right,
-                  style: kMessageTextStyle,
+                SearchFieldWidget(
+                  controller: controller,
+                  onPressed: () {
+                    getWeatherData();
+                  },
                 ),
-              ),
-              ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                  child: Container(
-                    padding: EdgeInsets.all(34),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                    child: Text('fffffmmmmmmm'),
-                  ),
+                const SizedBox(
+                  height: 12,
                 ),
-              ),
-            ],
+                MyWeatherWidget(
+                  color: AppColors.blueGreyGradient,
+                  image: WeatherModel()
+                      .getWeatherIcon(id: widget.weatherData.id!.toInt()),
+                  description: widget.weatherData.weather[0].description,
+                  city: widget.weatherData.name,
+                  country: widget.weatherData.sys.country,
+                  speedWind: widget.weatherData.wind.speed.toInt(),
+                  temp: widget.weatherData.main.temp.toInt(),
+                  tempMax: widget.weatherData.main.tempMax.toInt(),
+                  tempMin: widget.weatherData.main.tempMin.toInt(),
+                  main: widget.weatherData.weather[0].main,
+                  //  iconCode: iconCode,
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  void getWeatherData() async {
+    FeatchData featchData = FeatchData();
+    AllWeatherModel weatherModel =
+        await featchData.getCityLocationWeather(controller.text);
+
+    if (mounted) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return CitySearch(
+          weatherData: weatherModel,
+          city: controller.text,
+        );
+      }));
+    }
   }
 }
